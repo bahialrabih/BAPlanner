@@ -13,23 +13,47 @@ const DATA_URL = {
 const LOCAL_STORAGE_KEY = 'PlannerSelectionData';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const studData = await fetchData(DATA_URL.students);
-    const eqiupData = await fetchData(DATA_URL.equipment);
-    const itemsData = await fetchData(DATA_URL.items);
-    const shopsData = await fetchData(DATA_URL.shops);
-    if (!studData || !eqiupData || !itemsData) {
-        alert('Failed to load data.');
-        return;
+    // Show loading overlay
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    try {
+        const studData = await fetchData(DATA_URL.students);
+        const eqiupData = await fetchData(DATA_URL.equipment);
+        const itemsData = await fetchData(DATA_URL.items);
+        const shopsData = await fetchData(DATA_URL.shops);
+
+        if (!studData || !eqiupData || !itemsData) {
+            throw new Error('Failed to load required data.');
+        }
+
+        const ctrl = new Controller(studData, eqiupData, itemsData, shopsData);
+        ctrl.constructStudentTable();
+        ctrl.constructArtifactTable();
+        ctrl.constructEquipmentTable();
+        ctrl.updateStats();
+
+        // Hide loading overlay after data is loaded
+        setTimeout(() => {
+            loadingOverlay.classList.add('hidden');
+        }, 500);
+
+    } catch (error) {
+        console.error('Error loading data:', error);
+        alert('Failed to load data. Please refresh the page and try again.');
+        loadingOverlay.classList.add('hidden');
     }
-    const ctrl = new Controller(studData, eqiupData, itemsData, shopsData);
-    ctrl.constructStudentTable();
-    ctrl.constructArtifactTable();
-    ctrl.constructEquipmentTable();
-    document.body.addEventListener('scroll', () => {
-        console.log('scrolling');
+
+    // Enhanced scroll functionality
+    window.addEventListener('scroll', () => {
+        const scrollToTopBtn = document.getElementById('scrollToTop');
+        if (window.pageYOffset > 300) {
+            scrollToTopBtn.classList.add('visible');
+        } else {
+            scrollToTopBtn.classList.remove('visible');
+        }
+
         const thead = document.querySelector('details[open] table thead');
         if (thead) {
-            console.log('thead');
             const rect = thead.getBoundingClientRect();
             if (rect.top <= 0) {
               thead.classList.add('sticky-header');
@@ -39,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     });
+
     document.querySelector('#searchBar').value = '';
 });
 
@@ -82,10 +107,33 @@ class Controller {
 
     initSelectionData() {
         this.selectionData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) ?? { Artifact: [], Equipment: [] };
+    }    updateLocalStorage() {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.selectionData));
+        this.updateStats();
     }
 
-    updateLocalStorage() {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.selectionData));
+    updateStats() {
+        // Update selected students count
+        const selectedStudentsCount = new Set([
+            ...this.selectionData.Artifact,
+            ...this.selectionData.Equipment
+        ]).size;
+
+        // Update artifacts needed count
+        const artifactsNeeded = this.selectionData.Artifact.length > 0 ?
+            Object.values(this.artifactsData).filter(arti =>
+                this.selectionData.Artifact.some(id =>
+                    this.studentData[id].TotalMaterialUsage[arti.Id] > 0
+                )
+            ).length : 0;
+
+        // Update equipment needed count
+        const equipmentNeeded = this.selectionData.Equipment.length;
+
+        // Update DOM elements
+        document.getElementById('selectedStudentsCount').textContent = selectedStudentsCount;
+        document.getElementById('artifactsNeeded').textContent = artifactsNeeded;
+        document.getElementById('equipmentNeeded').textContent = equipmentNeeded;
     }
 
     modifyData() {
@@ -589,3 +637,51 @@ const sortFunctionFactory = {
         };
     }
 };
+
+// Enhanced utility functions for modern UI features
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+function toggleQualityFilter() {
+    const filterBtn = event.target.closest('.filter-btn');
+    const body = document.body;
+
+    filterBtn.classList.toggle('active');
+    body.classList.toggle('quality-filter-active');
+}
+
+function toggleCompactMode() {
+    const filterBtn = event.target.closest('.filter-btn');
+    const body = document.body;
+
+    filterBtn.classList.toggle('active');
+    body.classList.toggle('compact-mode');
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    // Add to DOM
+    document.body.appendChild(notification);
+
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
+}
