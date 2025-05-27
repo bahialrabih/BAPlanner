@@ -288,49 +288,6 @@ html, body {
     align-items: flex-end;
 }
 
-.filter-options {
-    display: flex;
-    gap: 0.5rem;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all var(--transition-normal);
-}
-
-.search-bar-container:hover .filter-options {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.filter-btn {
-    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-md);
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    white-space: nowrap;
-}
-
-.filter-btn:hover {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-.filter-btn.active {
-    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-dark) 100%);
-    color: white;
-    border-color: var(--accent-color);
-}
-
-/* Modern search bar styling */
 .search-bar-wrapper {
     position: relative;
     display: flex;
@@ -597,14 +554,15 @@ html, body {
     }
 }
 
-/* Enhanced focus states */
+/* Enhanced focus states - Test without
 *:focus {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }
+*/
 
 button:focus,
-input:focus,
+input:not(#searchBar):focus,
 .checkbox:focus {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
@@ -1101,13 +1059,6 @@ th:has(button.sort-button) {
         padding: 1rem;
     }
 
-    .filter-options {
-        opacity: 1;
-        transform: translateY(0);
-        flex-direction: column;
-        align-items: stretch;
-    }
-
     .search-bar-container {
         position: relative;
         top: auto;
@@ -1122,6 +1073,8 @@ th:has(button.sort-button) {
 
     .search-bar-wrapper input:focus {
         width: 100%;
+        outline: none !important;
+        border: none !important;
     }
 }
 
