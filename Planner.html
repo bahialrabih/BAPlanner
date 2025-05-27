@@ -2,127 +2,119 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="Planner.css">
-    <title>Blue Archive Planner</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="Planner.css">
+  <title>Blue Archive Planner</title>
 </head>
 
-<body>    <header class="app-header">
-        <div class="header-content">
-            <h1 class="app-title">
-                <i class="fas fa-graduation-cap"></i>
-                Blue Archive Planner
-            </h1>
-            <p class="app-subtitle">Manage your students, artifacts, and equipment efficiently</p>
-        </div>
-        <div class="header-stats">
-            <div class="stat-card">
-                <i class="fas fa-users"></i>
-                <div class="stat-info">
-                    <span class="stat-number" id="selectedStudentsCount">0</span>
-                    <span class="stat-label">Students Selected</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-gem"></i>
-                <div class="stat-info">
-                    <span class="stat-number" id="artifactsNeeded">0</span>
-                    <span class="stat-label">Artifacts Needed</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-shield-alt"></i>
-                <div class="stat-info">
-                    <span class="stat-number" id="equipmentNeeded">0</span>
-                    <span class="stat-label">Equipment Needed</span>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="main-container">
-        <section class="planner-section">
-            <details class="modern-details">
-                <summary class="modern-summary">
-                    <i class="fas fa-users icon"></i>
-                    <span class="summary-text">Select Students</span>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </summary>
-                <div class="details-content">
-                    <div id="char_list_container" class="table-container">
-                        <table id="char_list_table" apply-filter="true" class="modern-table"></table>
-                    </div>
-                </div>
-            </details>
-        </section>
-
-        <section class="planner-section">
-            <details class="modern-details">
-                <summary class="modern-summary">
-                    <i class="fas fa-gem icon"></i>
-                    <span class="summary-text">Artifacts Needed</span>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </summary>
-                <div class="details-content">
-                    <div id="artifact_list_container" class="table-container">
-                        <table id="artifact_list_table" apply-filter="true" class="modern-table"></table>
-                    </div>
-                </div>
-            </details>
-        </section>
-
-        <section class="planner-section">
-            <details class="modern-details">
-                <summary class="modern-summary">
-                    <i class="fas fa-shield-alt icon"></i>
-                    <span class="summary-text">Equipment Needed</span>
-                    <i class="fas fa-chevron-down chevron"></i>
-                </summary>
-                <div class="details-content">
-                    <div id="equipment_list_container" class="table-container">
-                        <table id="equipment_list_table" apply-filter="true" class="modern-table"></table>
-                    </div>
-                </div>
-            </details>
-        </section>
-    </main>    <div class="search-bar-container">
-        <div class="search-bar-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchBar" placeholder="Search students, artifacts, equipment..." oninput="searchBarOnInput(event)" />
-            <button class="clear-search" type="button" onclick="document.getElementById('searchBar').value=''; clearFilter();">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="filter-options">
-            <button class="filter-btn" onclick="toggleQualityFilter()">
-                <i class="fas fa-star"></i>
-                Quality Filter
-            </button>
-            <button class="filter-btn" onclick="toggleCompactMode()">
-                <i class="fas fa-compress-alt"></i>
-                Compact View
-            </button>
-        </div>
-    </div>    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Loading data...</p>
-            <div class="loading-progress">
-                <div class="loading-progress-bar"></div>
-            </div>
-        </div>
+<body>
+  <header class="app-header">
+    <div class="header-content">
+      <h1 class="app-title">
+        <i class="fas fa-graduation-cap"></i>
+        Blue Archive Planner
+      </h1>
+      <p class="app-subtitle">Made for convenience</p>
     </div>
+    <div class="header-stats">
+      <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <div class="stat-info">
+          <span class="stat-number" id="artifactStudentsCount">0</span>
+          <span class="stat-label">Students Selected - Artifacts</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <div class="stat-info">
+          <span class="stat-number" id="equipmentStudentsCount">0</span>
+          <span class="stat-label">Students Selected - Equipment</span>
+        </div>
+      </div>
+    </div>
+  </header>
 
-    <button class="scroll-to-top" id="scrollToTop" onclick="scrollToTop()">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+  <main class="main-container">
+    <section class="planner-section">
+      <details class="modern-details">
+        <summary class="modern-summary">
+          <i class="fas fa-users icon"></i>
+          <span class="summary-text">Select Students</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </summary>
+        <div class="details-content">
+          <div id="char_list_container" class="table-container">
+            <table id="char_list_table" apply-filter="true" class="modern-table"></table>
+          </div>
+        </div>
+      </details>
+    </section>
 
-    <script src="Planner.js"></script>
+    <section class="planner-section">
+      <details class="modern-details">
+        <summary class="modern-summary">
+          <i class="fas fa-gem icon"></i>
+          <span class="summary-text">Artifacts Needed</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </summary>
+        <div class="details-content">
+          <div id="artifact_list_container" class="table-container">
+            <table id="artifact_list_table" apply-filter="true" class="modern-table"></table>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section class="planner-section">
+      <details class="modern-details">
+        <summary class="modern-summary">
+          <i class="fas fa-shield-alt icon"></i>
+          <span class="summary-text">Equipment Needed</span>
+          <i class="fas fa-chevron-down chevron"></i>
+        </summary>
+        <div class="details-content">
+          <div id="equipment_list_container" class="table-container">
+            <table id="equipment_list_table" apply-filter="true" class="modern-table"></table>
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+  <div class="search-bar-container">
+    <div class="search-bar-wrapper">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchBar" placeholder="Search..." oninput="searchBarOnInput(event)" />
+      <button class="clear-search" type="button"
+        onclick="document.getElementById('searchBar').value=''; clearFilter();">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading data...</p>
+      <div class="loading-progress">
+        <div class="loading-progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="scroll-to-top" id="scrollToTop" onclick="scrollToTop()">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <footer class="app-footer" style="text-align:center; margin: 2rem 0 1rem 0; color: #888; font-size: 0.95rem;">
+    <p>This is a fan project and is not affiliated with or endorsed by Blue Archive, Nexon, or any official entities.
+      All assets and trademarks belong to their respective owners.</p>
+  </footer>
+
+  <script src="Planner.js"></script>
 </body>
 
 </html>

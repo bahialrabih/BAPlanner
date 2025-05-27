@@ -119,21 +119,15 @@ class Controller {
             ...this.selectionData.Equipment
         ]).size;
 
-        // Update artifacts needed count
-        const artifactsNeeded = this.selectionData.Artifact.length > 0 ?
-            Object.values(this.artifactsData).filter(arti =>
-                this.selectionData.Artifact.some(id =>
-                    this.studentData[id].TotalMaterialUsage[arti.Id] > 0
-                )
-            ).length : 0;
+        // Count students selected for artifacts only
+        const artifactStudentsCount = this.selectionData.Artifact.length;
 
-        // Update equipment needed count
-        const equipmentNeeded = this.selectionData.Equipment.length;
+        // Count students selected for equipment only
+        const equipmentStudentsCount = this.selectionData.Equipment.length;
 
-        // Update DOM elements
-        document.getElementById('selectedStudentsCount').textContent = selectedStudentsCount;
-        document.getElementById('artifactsNeeded').textContent = artifactsNeeded;
-        document.getElementById('equipmentNeeded').textContent = equipmentNeeded;
+        // Update DOM elements for individual counts
+        document.getElementById('artifactStudentsCount').textContent = artifactStudentsCount;
+        document.getElementById('equipmentStudentsCount').textContent = equipmentStudentsCount;
     }
 
     modifyData() {
