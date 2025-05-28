@@ -1019,8 +1019,8 @@ th:has(button.sort-button) {
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     border: none;
     border-radius: 50%;
@@ -1030,19 +1030,10 @@ th:has(button.sort-button) {
     box-shadow: var(--shadow-lg);
     transition: all var(--transition-normal);
     z-index: 100;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(20px);
 }
 
-.scroll-to-top.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
 
 .scroll-to-top:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow-xl);
     background: linear-gradient(135deg, var(--primary-dark) 0%, #3730a3 100%);
 }

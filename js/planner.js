@@ -43,27 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadingOverlay.classList.add('hidden');
     }
 
-    // Enhanced scroll functionality
-    window.addEventListener('scroll', () => {
-        const scrollToTopBtn = document.getElementById('scrollToTop');
-        if (window.pageYOffset > 300) {
-            scrollToTopBtn.classList.add('visible');
-        } else {
-            scrollToTopBtn.classList.remove('visible');
-        }
-
-        const thead = document.querySelector('details[open] table thead');
-        if (thead) {
-            const rect = thead.getBoundingClientRect();
-            if (rect.top <= 0) {
-              thead.classList.add('sticky-header');
-            }
-            else {
-              thead.classList.remove('sticky-header');
-            }
-        }
-    });
-
     document.querySelector('#searchBar').value = '';
 });
 
@@ -634,7 +613,7 @@ const sortFunctionFactory = {
 
 // Enhanced utility functions for modern UI features
 function scrollToTop() {
-    window.scrollTo({
+    document.body.scrollTo({
         top: 0,
         behavior: 'smooth'
     });
