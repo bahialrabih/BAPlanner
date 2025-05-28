@@ -86,7 +86,8 @@ class Controller {
 
     initSelectionData() {
         this.selectionData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) ?? { Artifact: [], Equipment: [] };
-    }    updateLocalStorage() {
+    }
+    updateLocalStorage() {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.selectionData));
         this.updateStats();
     }
@@ -165,15 +166,20 @@ class Controller {
             cell3.setAttribute('header-name', headers[count++].label);
             // Cell 4: user input
             const cell4 = row.insertCell(3);
-            cell4.appendChild(createCheckbox());
+            const cell4Checkbox = createCheckbox();
+            cell4Checkbox.title = headers[count].label;
+            cell4.appendChild(cell4Checkbox);
             cell4.setAttribute('header-name', headers[count].label);
+
             if (selectionData[headers[count].cacheKey] && selectionData[headers[count].cacheKey].includes(String(student.Id))) {
                 cell4.querySelector('input').checked = true;
             }
             count++;
             // Cell 5: user input
             const cell5 = row.insertCell(4);
-            cell5.appendChild(createCheckbox());
+            const cell5Checkbox = createCheckbox();
+            cell5Checkbox.title = headers[count].label;
+            cell5.appendChild(cell5Checkbox);
             cell5.setAttribute('header-name', headers[count].label);
 
             if (selectionData[headers[count].cacheKey] && selectionData[headers[count].cacheKey].includes(String(student.Id))) {
@@ -181,6 +187,12 @@ class Controller {
             }
             count++;
         });
+        // ----- Handle checkbox changes ----- Use a debounce for constructing the whole table
+        const refreshLocalStorageAndTables = debounce(() => {
+            this.updateLocalStorage();
+            this.constructArtifactTable();
+            this.constructEquipmentTable();
+        }, 300);
         tbody.addEventListener('change', (event) => {
             if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
                 const checkbox = event.target;
@@ -195,9 +207,7 @@ class Controller {
                         selectionData[headerName] = selectionData[headerName].filter(id => id !== studentId);
                     }
                 }
-                this.updateLocalStorage();
-                this.constructArtifactTable();
-                this.constructEquipmentTable();
+                refreshLocalStorageAndTables();
             }
         });
     }
@@ -482,10 +492,11 @@ function getAggregateBlueprint() {
 function debounce(func, timeout = 300){
     // console.log('debounce --------------------------------- start'); // only seen once in the console log
     let timer;
-    return (...args) => {
-        // console.log('Clearing previous timer:', timer);
+    return function(...args) {
+        // console.log('Clearing previous timer: id=', timer);
         clearTimeout(timer);
-        timer = setTimeout(func, timeout, ...args);
+        // timer = setTimeout(func, timeout, ...args);
+        timer = setTimeout(() => func.apply(this, args), timeout);
     };
 }
 
@@ -559,6 +570,7 @@ function constructHeaderTR(headers, tableSelector) {
         // Step 1: insert Text
         const headerTextNode = document.createTextNode(header.label);
         th.appendChild(headerTextNode);
+
         // Step 2: sort button (if applicable)
         if (header.sortFuncName) {
             const button = document.createElement('button');
@@ -573,6 +585,30 @@ function constructHeaderTR(headers, tableSelector) {
             });
             th.appendChild(button);
         }
+
+        // Step 3: Add unselect all button for Equipment and Artifact columns in char_list_table
+        if (tableSelector === '#char_list_table' && header.cacheKey && (header.cacheKey === 'Equipment' || header.cacheKey === 'Artifact')) {
+            // Create select all button
+            const selectButton = document.createElement('button');
+            selectButton.setAttribute('class', 'toggle-select-all-button');
+            selectButton.innerHTML = '<i class="fas fa-check-double"></i>';
+            selectButton.title = `Select all ${header.cacheKey}`;
+            selectButton.addEventListener('click', () => {
+                selectOrUnselectAllInCategory(header.cacheKey, true); // true means select
+            });
+            th.appendChild(selectButton);
+
+            // Create unselect all button
+            const unselectButton = document.createElement('button');
+            unselectButton.setAttribute('class', 'toggle-select-all-button');
+            unselectButton.innerHTML = '<i class="fas fa-times-circle"></i>';
+            unselectButton.title = `Unselect all ${header.cacheKey}`;
+            unselectButton.addEventListener('click', () => {
+                selectOrUnselectAllInCategory(header.cacheKey, false); // false means unselect
+            });
+            th.appendChild(unselectButton);
+        }
+
         tr.appendChild(th);
     });
     return tr;
@@ -610,6 +646,21 @@ const sortFunctionFactory = {
         };
     }
 };
+
+function selectOrUnselectAllInCategory(categoryKey, select = true) {
+    // Find all checkboxes in the specified category column
+    const table = document.getElementById('char_list_table');
+    const headerCells = table.querySelectorAll(`td[header-name="${categoryKey}"]`);
+
+    headerCells.forEach(cell => {
+        const checkbox = cell.querySelector('input[type="checkbox"]');
+        if (checkbox && checkbox.checked !== select) {
+            checkbox.checked = select;
+            // Trigger change event to update the data
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    });
+}
 
 // Enhanced utility functions for modern UI features
 function scrollToTop() {
