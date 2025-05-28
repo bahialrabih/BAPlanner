@@ -98,10 +98,13 @@ html, body {
     z-index: 1;
 }
 
-.app-title i {
+.app-title .app-icon {
+    width: 2.5rem;
+    height: 2.5rem;
     margin-right: 0.75rem;
-    color: var(--primary-color);
-    -webkit-text-fill-color: var(--primary-color);
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    vertical-align: middle;
 }
 
 .app-subtitle {
