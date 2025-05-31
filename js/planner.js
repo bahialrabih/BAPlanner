@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ctrl.constructStudentTable();
         ctrl.constructArtifactTable();
         ctrl.constructEquipmentTable();
+        ctrl.constructSchoolTable();
         ctrl.updateStats();
 
         // Hide loading overlay after data is loaded
@@ -78,6 +79,11 @@ class Controller {
                 { label: "Equipment", sortFuncName: null },
                 { label: "Total", sortFuncName: 'numberCompareSort' },
                 { label: "Students", sortFuncName: null }
+            ],
+            school: [
+                { label: "School", sortFuncName: null },
+                { label: "Total", sortFuncName: 'numberCompareSort' },
+                { label: "Students", sortFuncName: null }
             ]
         };
         this.modifyData();
@@ -93,12 +99,6 @@ class Controller {
     }
 
     updateStats() {
-        // Update selected students count
-        const selectedStudentsCount = new Set([
-            ...this.selectionData.Artifact,
-            ...this.selectionData.Equipment
-        ]).size;
-
         // Count students selected for artifacts only
         const artifactStudentsCount = this.selectionData.Artifact.length;
 
@@ -190,8 +190,10 @@ class Controller {
         // ----- Handle checkbox changes ----- Use a debounce for constructing the whole table
         const refreshLocalStorageAndTables = debounce(() => {
             this.updateLocalStorage();
+            // Refresh all tables (except the first one since that one is controlled by user selection)
             this.constructArtifactTable();
             this.constructEquipmentTable();
+            this.constructSchoolTable();
         }, 300);
         tbody.addEventListener('change', (event) => {
             if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
@@ -309,6 +311,49 @@ class Controller {
             const cell3 = row.insertCell(2);
             cell3.setAttribute('header-name', headers[count++].label);
             cell3.appendChild(this.createImageList(studentIdsOfThisEquipment));
+        });
+    }
+    constructSchoolTable() {
+        const table = document.getElementById('school_list_table');
+        table.innerHTML = ""; // Clear the table before populating it again
+        const thead = table.createTHead();
+        const headers = this.headers.school;
+        thead.appendChild(constructHeaderTR(headers, '#school_list_table'));
+        const tbody = table.createTBody();
+
+        const allSelectedIds = new Set([
+            ...this.selectionData.Artifact,
+            ...this.selectionData.Equipment
+        ]);
+        const selectedStudentsBySchool =
+            Object.values(this.studentData)
+                            .filter(student => allSelectedIds.has(String(student.Id)))
+                            .reduce((acc, student) => {
+                                const school = student.School || "Unknown";
+                                acc[school] ||= [];
+                                acc[school].push(student.Id);
+                                return acc;
+                            }, {});
+
+        const schools = Object.keys(selectedStudentsBySchool).sort();
+        schools.forEach((school, rowIndex) => {
+            const studentIdsOfThisSchool = selectedStudentsBySchool[school];
+            let count = 0;
+            // create empty row
+            const row = tbody.insertRow(rowIndex);
+            row.setAttribute('school-name', school);
+            // Cell 1: icon
+            const cell1 = row.insertCell(0);
+            cell1.setAttribute('header-name', headers[count++].label);
+            cell1.textContent = school;
+            // Cell 2: Total Quantity
+            const cell2 = row.insertCell(1);
+            cell2.setAttribute('header-name', headers[count++].label);
+            cell2.textContent = studentIdsOfThisSchool.length;
+            // Cell 3: Students
+            const cell3 = row.insertCell(2);
+            cell3.setAttribute('header-name', headers[count++].label);
+            cell3.appendChild(this.createImageList(studentIdsOfThisSchool));
         });
     }
     createImageListWithArtiQuantity(studentIds, artifactId) {
