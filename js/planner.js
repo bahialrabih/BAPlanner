@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const itemsData = await fetchData(DATA_URL.items);
         const shopsData = await fetchData(DATA_URL.shops);
 
-        if (!studData || !eqiupData || !itemsData) {
+        if (!studData || !eqiupData || !itemsData || !shopsData) {
             throw new Error('Failed to load required data.');
         }
 
@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadingOverlay.classList.add('hidden');
         }, 500);
 
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Error loading data:', error);
         alert('Failed to load data. Please refresh the page and try again.');
         loadingOverlay.classList.add('hidden');
@@ -59,6 +60,8 @@ class Controller {
         this.artifactsData = Object.fromEntries(
             Object.entries(itemsData).filter(([, value]) => value.SubCategory === "Artifact")
         );
+        this.techNotes = Object.values(itemsData).filter(item => item.Category === 'Material' && item.SubCategory === "BookItem").sort((a, b) => a.Quality - b.Quality);
+        this.blueRays = Object.values(itemsData).filter(item => item.Category === 'Material' && item.SubCategory === "CDItem").sort((a, b) => a.Quality - b.Quality);
         this.selectionData;
         this.headers = {
             students: [
@@ -398,13 +401,31 @@ class Controller {
 }
 
 async function fetchData(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        console.error('Failed to fetch data from ', url, ':', response.statusText);
-        return null;
+    // Create AbortController with 30 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            console.error('Failed to fetch data from ', url, ':', response.statusText);
+            return null;
+        }
+        const data = await response.json();
+        return data;
     }
-    const data = await response.json();
-    return data;
+    catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            console.error('Request to', url, 'timed out after 30 seconds');
+        }
+        else {
+            console.error('Error fetching data from', url, ':', error.message);
+        }
+        throw error; // Re-throw the error to be handled by the caller
+    }
 }
 function createCheckbox() {
     const container = document.createElement('div');
@@ -713,22 +734,6 @@ function scrollToTop() {
         top: 0,
         behavior: 'smooth'
     });
-}
-
-function toggleQualityFilter() {
-    const filterBtn = event.target.closest('.filter-btn');
-    const body = document.body;
-
-    filterBtn.classList.toggle('active');
-    body.classList.toggle('quality-filter-active');
-}
-
-function toggleCompactMode() {
-    const filterBtn = event.target.closest('.filter-btn');
-    const body = document.body;
-
-    filterBtn.classList.toggle('active');
-    body.classList.toggle('compact-mode');
 }
 
 function showNotification(message, type = 'info') {
