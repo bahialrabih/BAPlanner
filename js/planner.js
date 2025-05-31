@@ -86,7 +86,9 @@ class Controller {
             school: [
                 { label: "School", sortFuncName: null },
                 { label: "Total", sortFuncName: 'numberCompareSort' },
-                { label: "Students", sortFuncName: null }
+                { label: "Students", sortFuncName: null },
+                { label: "Tech Notes", sortFuncName: null },
+                { label: "Blue Rays", sortFuncName: null },
             ]
         };
         this.modifyData();
@@ -332,7 +334,8 @@ class Controller {
             Object.values(this.studentData)
                             .filter(student => allSelectedIds.has(String(student.Id)))
                             .reduce((acc, student) => {
-                                const school = student.School || "Unknown";
+                                let school = student.School || "Unknown";
+                                school = school === 'SRT' ? 'Valkyrie' : school; // Handle SRT as Valkyrie since they grouped together in game
                                 acc[school] ||= [];
                                 acc[school].push(student.Id);
                                 return acc;
@@ -350,13 +353,49 @@ class Controller {
             cell1.setAttribute('header-name', headers[count++].label);
             cell1.textContent = school;
             // Cell 2: Total Quantity
+            const totalQuantity = studentIdsOfThisSchool.length;
             const cell2 = row.insertCell(1);
             cell2.setAttribute('header-name', headers[count++].label);
-            cell2.textContent = studentIdsOfThisSchool.length;
+            cell2.textContent = totalQuantity;
             // Cell 3: Students
             const cell3 = row.insertCell(2);
             cell3.setAttribute('header-name', headers[count++].label);
             cell3.appendChild(this.createImageList(studentIdsOfThisSchool));
+            // Cell 4: Tech notes
+                /* Sample data format:
+    data = [
+        {
+            imgSrc: 'https://example.com/image1.jpg',
+            Quantity: 1,
+            name: 'Item 1'
+        }
+    ]
+    */
+            // Assumes need x25 for Quality 1-3 and x20 for Quality 4 - needs improvement to by dynamically fetched from studentData (todo later)
+            // The above quantity is then multiplied by 3 (for 3 skills)
+            // This assumption is mostly correct, but will not work for collab students since they dont have standard material usage
+            const cell4 = row.insertCell(3);
+            cell4.setAttribute('header-name', headers[count++].label);
+            // Todo the filter function is weak matching by name -> should later by matched from studentData by IDs
+            const techNoteData = this.techNotes.filter(tn => tn.Name.toLowerCase().replaceAll(' ', '').includes(school.toLowerCase().replaceAll(' ', '')))
+                                    .map(tn => ({
+                                        imgSrc: `https://schaledb.com/images/item/full/${tn.Icon}.webp`,
+                                        Quantity: 3 * totalQuantity * (tn.Quality===4 ? 20 : 25),
+                                        name: tn.Name
+                                    }));
+            cell4.appendChild(createGenericImageList(techNoteData));
+
+            // Assumes need 30 for Quality 1-3 and x8 for Quality 4 - needs improvement to by dynamically fetched from studentData (todo later)
+            // This assumption is mostly correct, but will not work for collab students since they dont have standard material usage
+            const cell5 = row.insertCell(4);
+            cell5.setAttribute('header-name', headers[count++].label);
+            const blueRayData = this.blueRays.filter(tn => tn.Name.toLowerCase().replaceAll(' ', '').includes(school.toLowerCase().replaceAll(' ', '')))
+                                    .map(tn => ({
+                                        imgSrc: `https://schaledb.com/images/item/full/${tn.Icon}.webp`,
+                                        Quantity: totalQuantity * (tn.Quality===4 ? 8 : 30),
+                                        name: tn.Name
+                                    }));
+            cell5.appendChild(createGenericImageList(blueRayData));
         });
     }
     createImageListWithArtiQuantity(studentIds, artifactId) {
@@ -398,6 +437,38 @@ class Controller {
         });
         return flexbox;
     }
+}
+
+function createGenericImageList(dataList=[]) {
+    /* Sample data format:
+    data = [
+        {
+            imgSrc: 'https://example.com/image1.jpg',
+            Quantity: 1,
+            name: 'Item 1'
+        }
+    ]
+    */
+    const flexbox = document.createElement('div');
+    flexbox.setAttribute('class', 'image-list-container');
+    dataList.forEach(data => {
+        const imgDiv = document.createElement('div');
+        imgDiv.setAttribute('search-key', data.name);
+        imgDiv.setAttribute('Title', data.name);
+        const img = document.createElement('img');
+        img.alt = data.name;
+        img.src = data.imgSrc;
+        imgDiv.appendChild(img);
+        if (data.Quantity != null) {
+            imgDiv.setAttribute('class', 'image-with-quantity');
+            const span = document.createElement('span');
+            span.setAttribute('class', 'quantity-badge');
+            span.textContent = `x ${data.Quantity}`;
+            imgDiv.appendChild(span);
+        }
+        flexbox.appendChild(imgDiv);
+    });
+    return flexbox;
 }
 
 async function fetchData(url) {
